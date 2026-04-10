@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Campus BorrowHub</title>
+
+<style>
+    :root {
+        --primary: #111;
+        --secondary: #666;
+        --border: #e5e5e5;
+        --bg: #fafafa;
+        --card: #ffffff;
+    }
+
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+        background: var(--bg);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .auth-container {
+        width: 100%;
+        max-width: 380px;
+        padding: 20px;
+    }
+
+    .header {
+        text-align: center;
+        margin-bottom: 25px;
+    }
+
+    .header h1 {
+        font-size: 22px;
+        font-weight: 600;
+    }
+
+    .header p {
+        font-size: 13px;
+        color: var(--secondary);
+    }
+
+    .card {
+        background: var(--card);
+        padding: 20px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+    }
+
+    h2 {
+        font-size: 18px;
+        margin-bottom: 15px;
+        text-align: center;
+    }
+
+    .form-group {
+        margin-bottom: 12px;
+    }
+
+    input {
+        width: 100%;
+        padding: 10px;
+        font-size: 14px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+    }
+
+    input:focus {
+        outline: none;
+        border-color: #999;
+    }
+
+    button {
+        width: 100%;
+        padding: 10px;
+        border-radius: 6px;
+        border: none;
+        background: #111;
+        color: white;
+        font-size: 14px;
+        margin-top: 8px;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    button.secondary {
+        background: transparent;
+        color: var(--secondary);
+    }
+
+    button:hover {
+        opacity: 0.85;
+    }
+
+    .hidden {
+        display: none;
+    }
+
+    /* Dashboard */
+    .dashboard {
+        max-width: 900px;
+        width: 100%;
+    }
+
+    .top-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .equipment-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+    }
+
+    .equipment-item {
+        border: 1px solid var(--border);
+        padding: 15px;
+        border-radius: 8px;
+        background: #fff;
+    }
+</style>
+</head>
+
+<body>
+
+<!-- AUTH (Login & Signup) -->
+<div id="auth-section" class="auth-container">
+
+    <div class="header">
+        <h1>Campus BorrowHub</h1>
+        <p>Simple Equipment Borrowing</p>
+    </div>
+
+    <!-- Login -->
+    <div id="login-section" class="card">
+        <h2>Login</h2>
+        <form onsubmit="login(event)">
+            <div class="form-group">
+                <input type="email" id="email" placeholder="Email" required>
+            </div>
+            <div class="form-group">
+                <input type="password" id="password" placeholder="Password" required>
+            </div>
+            <button type="submit">Login</button>
+            <button type="button" class="secondary" onclick="showSignUp()">Create account</button>
+        </form>
+    </div>
+
+    <!-- Signup -->
+    <div id="signup-section" class="card hidden">
+        <h2>Sign Up</h2>
+        <form onsubmit="signup(event)">
+            <div class="form-group">
+                <input type="text" id="firstname" placeholder="First Name" required>
+            </div>
+            <div class="form-group">
+                <input type="text" id="lastname" placeholder="Last Name" required>
+            </div>
+            <div class="form-group">
+                <input type="email" id="signup-email" placeholder="Email" required>
+            </div>
+            <div class="form-group">
+                <input type="password" id="signup-password" placeholder="Password" required>
+            </div>
+            <button type="submit">Create Account</button>
+            <button type="button" class="secondary" onclick="showLogin()">Back</button>
+        </form>
+    </div>
+
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard-section" class="card dashboard hidden">
+
+    <div class="top-bar">
+        <h2>Dashboard</h2>
+        <button onclick="logout()">Logout</button>
+    </div>
+
+    <p>Welcome, <strong id="user-name"></strong></p>
+
+    <h3>Available Equipment</h3>
+    <div id="equipment-list" class="equipment-list"></div>
+
+    <h3>Your Requests</h3>
+    <div id="requests-list"></div>
+
+</div>
+
+<script>
+    function showSignUp() {
+        document.getElementById("login-section").classList.add("hidden");
+        document.getElementById("signup-section").classList.remove("hidden");
+    }
+
+    function showLogin() {
+        document.getElementById("signup-section").classList.add("hidden");
+        document.getElementById("login-section").classList.remove("hidden");
+    }
+
+    function login(e) {
+        e.preventDefault();
+
+        const email = document.getElementById("email").value;
+
+        document.getElementById("auth-section").classList.add("hidden");
+        document.getElementById("dashboard-section").classList.remove("hidden");
+
+        document.getElementById("user-name").textContent = email;
+
+        loadEquipment();
+    }
+
+    function signup(e) {
+        e.preventDefault();
+        alert("Account created! You can now login.");
+        showLogin();
+    }
+
+    function logout() {
+        document.getElementById("dashboard-section").classList.add("hidden");
+        document.getElementById("auth-section").classList.remove("hidden");
+    }
+
+    function loadEquipment() {
+        const equipment = ["Laptop", "Projector", "Camera"];
+        const list = document.getElementById("equipment-list");
+        list.innerHTML = "";
+
+        equipment.forEach(item => {
+            const div = document.createElement("div");
+            div.className = "equipment-item";
+            div.textContent = item;
+            list.appendChild(div);
+        });
+    }
+</script>
+
+</body>
+</html>
+

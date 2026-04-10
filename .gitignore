@@ -1,0 +1,29 @@
+# Node dependencies
+node_modules/
+
+# Build output
+dist/
+coverage/
+
+# Runtime data
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# Environment files
+.env
+*.env
+
+# TypeScript
+*.tsbuildinfo
+
+# Editor directories and files
+.vscode/
+.idea/
+.DS_Store
+
+# Misc
+*.tgz
+.cache/
