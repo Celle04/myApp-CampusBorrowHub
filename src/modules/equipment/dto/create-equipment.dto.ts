@@ -1,4 +1,5 @@
-import { IsNotEmpty, IsString, IsOptional, IsNumber, Min, IsObject } from 'class-validator';
+import { IsNotEmpty, IsString, IsOptional, IsNumber, Min, IsObject, IsEnum } from 'class-validator';
+import { EquipmentStatus } from '../../../entities/equipment.entity';
 
 export class CreateEquipmentDto {
   @IsString()
@@ -21,6 +22,11 @@ export class CreateEquipmentDto {
   @Min(1)
   totalQuantity: number;
 
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  availableQuantity?: number;
+
   @IsString()
   @IsOptional()
   imageUrl?: string;
@@ -32,4 +38,8 @@ export class CreateEquipmentDto {
   @IsString()
   @IsOptional()
   location?: string;
+
+  @IsEnum(EquipmentStatus)
+  @IsOptional()
+  status?: EquipmentStatus;
 }

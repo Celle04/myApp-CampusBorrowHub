@@ -15,7 +15,7 @@ export class EquipmentService {
   async create(createEquipmentDto: CreateEquipmentDto): Promise<Equipment> {
     const equipment = this.equipmentRepository.create({
       ...createEquipmentDto,
-      availableQuantity: createEquipmentDto.totalQuantity,
+      availableQuantity: createEquipmentDto.availableQuantity ?? createEquipmentDto.totalQuantity,
     });
     return this.equipmentRepository.save(equipment);
   }

@@ -31,6 +31,12 @@ export class User {
   })
   role: UserRole;
 
+  @Column({ type: 'varchar', nullable: true })
+  resetToken: string | null;
+
+  @Column({ type: 'datetime', nullable: true })
+  resetTokenExpiry: Date | null;
+
   @Column({ default: true })
   isActive: boolean;
 

@@ -1,4 +1,4 @@
-import { Injectable, ConflictException, UnauthorizedException } from '@nestjs/common';
+import { Injectable, ConflictException, UnauthorizedException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
@@ -6,6 +6,8 @@ import { JwtService } from '@nestjs/jwt';
 import { User } from '../../entities/user.entity';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { ForgetPasswordDto } from './dto/forget-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -49,6 +51,10 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
+    if (!user.isActive) {
+      throw new UnauthorizedException('Account is deactivated');
+    }
+
     // Check password
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
@@ -66,9 +72,60 @@ export class AuthService {
 
   async validateUser(payload: any): Promise<User> {
     const user = await this.userRepository.findOne({ where: { id: payload.sub } });
-    if (!user) {
+    if (!user || !user.isActive) {
       throw new UnauthorizedException();
     }
     return user;
+  }
+
+  async forgetPassword(forgetPasswordDto: ForgetPasswordDto): Promise<{ message: string }> {
+    const { email } = forgetPasswordDto;
+
+    const user = await this.userRepository.findOne({ where: { email } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Generate reset token
+    const resetToken = this.jwtService.sign({ sub: user.id, email: user.email }, { expiresIn: '1h' });
+    const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hour
+
+    // Save token to user
+    user.resetToken = resetToken;
+    user.resetTokenExpiry = resetTokenExpiry;
+    await this.userRepository.save(user);
+
+    // In a real app, send email here
+    const appPort = process.env.APP_PORT ?? process.env.PORT ?? 3000;
+    console.log(`Reset password link: http://localhost:${appPort}/auth/reset-password?token=${resetToken}`);
+
+    return { message: 'Password reset link sent to your email' };
+  }
+
+  async resetPassword(resetPasswordDto: ResetPasswordDto): Promise<{ message: string }> {
+    const { token, newPassword } = resetPasswordDto;
+
+    try {
+      const payload = this.jwtService.verify(token);
+      const user = await this.userRepository.findOne({ where: { id: payload.sub, resetToken: token } });
+
+      if (!user || !user.resetTokenExpiry || user.resetTokenExpiry < new Date()) {
+        throw new UnauthorizedException('Invalid or expired token');
+      }
+
+      // Hash new password
+      const saltRounds = 10;
+      const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+
+      // Update password and clear reset token
+      user.password = hashedPassword;
+      user.resetToken = null;
+      user.resetTokenExpiry = null;
+      await this.userRepository.save(user);
+
+      return { message: 'Password reset successfully' };
+    } catch (error) {
+      throw new UnauthorizedException('Invalid token');
+    }
   }
 }

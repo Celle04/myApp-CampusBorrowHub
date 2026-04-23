@@ -42,7 +42,7 @@ export class Return {
   @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
   charges: number;
 
-  @Column()
+  @Column({ nullable: true })
   processedBy: number;
 
   @ManyToOne(() => User)

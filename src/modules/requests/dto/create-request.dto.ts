@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNumber, Min, IsDateString } from 'class-validator';
+import { IsNotEmpty, IsNumber, Min, IsDateString, IsOptional } from 'class-validator';
 
 export class CreateRequestDto {
   @IsNumber()
@@ -14,6 +14,7 @@ export class CreateRequestDto {
   @IsDateString()
   endDate: string;
 
+  @IsOptional()
   @IsNotEmpty()
   notes?: string;
 }
