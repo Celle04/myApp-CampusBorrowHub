@@ -309,7 +309,140 @@ The system covers:
 - Machine learning for demand prediction
 - Containerization with Docker/Kubernetes
 
-## 9. Conclusion
+## 9. Test Case Templates
+
+### 9.1 Unit Test Template
+
+**Test Name**: [Descriptive name of what is being tested]
+
+**Component**: [e.g., ItemsService, AuthService, EquipmentController]
+
+**Input**: [Sample data or parameters passed to the function]
+
+**Expected Result**: [What should happen - return value, state change, or error]
+
+**Steps**:
+1. [Set up test fixtures and mock dependencies]
+2. [Call the function or method with input parameters]
+3. [Assert the expected output or behavior]
+
+**Example**:
+```typescript
+describe('EquipmentService', () => {
+  describe('findById', () => {
+    it('should return equipment when valid id is provided', () => {
+      // Arrange
+      const equipmentId = 1;
+      const expectedEquipment = { id: 1, name: 'Laptop', category: 'Electronics' };
+      
+      // Act
+      const result = equipmentService.findById(equipmentId);
+      
+      // Assert
+      expect(result).toEqual(expectedEquipment);
+    });
+  });
+});
+```
+
+### 9.2 Integration Test Template
+
+**Test Name**: [Descriptive name of the API interaction being tested]
+
+**Endpoint**: [e.g., POST /equipment, GET /requests/:id]
+
+**Input**: [Request payload or query parameters]
+
+**Expected Result**: [Response status code, response body structure, data validation]
+
+**Steps**:
+1. [Set up test database state]
+2. [Make HTTP request to the endpoint with provided input]
+3. [Verify response status code]
+4. [Validate response body structure and data]
+5. [Verify side effects (database changes, etc.)]
+
+**Example**:
+```typescript
+describe('Equipment API Integration', () => {
+  describe('POST /equipment', () => {
+    it('should create equipment and return 201 status', async () => {
+      // Arrange
+      const createEquipmentDto = {
+        name: 'Projector',
+        category: 'Electronics',
+        totalQuantity: 5
+      };
+
+      // Act
+      const response = await request(app.getHttpServer())
+        .post('/equipment')
+        .send(createEquipmentDto)
+        .set('Authorization', `Bearer ${token}`);
+
+      // Assert
+      expect(response.status).toBe(201);
+      expect(response.body).toHaveProperty('id');
+      expect(response.body.name).toBe('Projector');
+    });
+  });
+});
+```
+
+### 9.3 End-to-End (E2E) Test Template
+
+**Test Name**: [Descriptive name of the user journey]
+
+**Scenario**: [User journey description - what the user is trying to accomplish]
+
+**Steps**:
+1. [User action - e.g., Navigate to login page]
+2. [User action - e.g., Enter credentials and submit]
+3. [System response - e.g., Redirect to dashboard]
+4. [User action - e.g., Browse equipment catalog]
+5. [User action - e.g., Submit borrow request]
+6. [System response and validation]
+
+**Expected Result**: [Final state - what should be displayed, data persisted, etc.]
+
+**Example**:
+```typescript
+describe('Student Borrow Equipment Flow (E2E)', () => {
+  it('should allow student to borrow equipment successfully', async () => {
+    // Step 1: Student logs in
+    await page.goto('http://localhost:3000/login');
+    await page.fill('input[name="email"]', 'student@university.edu');
+    await page.fill('input[name="password"]', 'password123');
+    await page.click('button[type="submit"]');
+    
+    // Step 2: Wait for dashboard
+    await page.waitForURL('http://localhost:3000/dashboard');
+    
+    // Step 3: Student browses equipment
+    await page.click('a[href="/equipment"]');
+    const equipmentCount = await page.locator('.equipment-card').count();
+    expect(equipmentCount).toBeGreaterThan(0);
+    
+    // Step 4: Student submits borrow request
+    await page.click('.equipment-card:first-child');
+    await page.fill('input[name="startDate"]', '2026-05-15');
+    await page.fill('input[name="endDate"]', '2026-05-22');
+    await page.fill('input[name="quantity"]', '1');
+    await page.click('button:has-text("Request Equipment")');
+    
+    // Step 5: Verify success message
+    const successMessage = await page.locator('.success-message');
+    await expect(successMessage).toContainText('Request submitted successfully');
+    
+    // Step 6: Verify request appears in history
+    await page.click('a[href="/my-requests"]');
+    const requestRow = await page.locator('table tbody tr:first-child');
+    await expect(requestRow).toContainText('Pending');
+  });
+});
+```
+
+## 10. Conclusion
 
 Campus BorrowHub aims to revolutionize equipment management on university campuses by providing a robust, user-friendly platform that serves all stakeholders. The system is designed with scalability, security, and usability in mind, ensuring it can grow with the institution's needs while maintaining high standards of reliability and performance.
 
