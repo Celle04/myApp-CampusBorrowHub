@@ -660,22 +660,27 @@ async function deleteEquipment(equipmentId) {
 }
 
 async function saveUserRole(userId) {
-    const role = document.getElementById(`role-${userId}`).value;
-    const isActive = document.getElementById(`active-${userId}`).checked;
+    try {
+        const role = document.getElementById(`role-${userId}`).value;
+        const isActive = document.getElementById(`active-${userId}`).checked;
 
-    await apiRequest(`/admin/users/${userId}/role`, {
-        method: 'PUT',
-        body: JSON.stringify({ role, isActive }),
-    });
+        await apiRequest(`/admin/users/${userId}/role`, {
+            method: 'PUT',
+            body: JSON.stringify({ role, isActive }),
+        });
 
-    if (state.currentUser.id === userId) {
-        state.currentUser.role = role;
-        state.currentUser.isActive = isActive;
-        localStorage.setItem('currentUser', JSON.stringify(state.currentUser));
+        if (state.currentUser.id === userId) {
+            state.currentUser.role = role;
+            state.currentUser.isActive = isActive;
+            localStorage.setItem('currentUser', JSON.stringify(state.currentUser));
+        }
+
+        showMessage('User account updated.', 'success');
+        await refreshDashboard();
+    } catch (error) {
+        console.error(error);
+        showMessage(error.message || 'Failed to update user account.', 'error');
     }
-
-    showMessage('User account updated.', 'success');
-    await refreshDashboard();
 }
 
 function logout() {
